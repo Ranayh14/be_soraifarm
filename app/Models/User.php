@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -19,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'nama_lengkap',
         'email',
+        'role',
         'password',
     ];
 
@@ -31,6 +33,14 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    /**
+     * Check if user is admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
 
     /**
      * Get the attributes that should be cast.

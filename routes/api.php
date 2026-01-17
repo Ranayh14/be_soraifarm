@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // IoT (Protected as per requirement logic, or at least View Protected)
     Route::get('/iots', [IoTController::class, 'index']);
     Route::get('/iots/latest', [IoTController::class, 'latest']);
+    Route::get('/iots/{iot}', [IoTController::class, 'show']);
     Route::post('/iots', [IoTController::class, 'store']);
 
     // Market Management

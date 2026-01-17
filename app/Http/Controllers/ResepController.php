@@ -6,6 +6,7 @@ use App\Models\Resep;
 use App\Http\Requests\StoreResepRequest;
 use App\Services\AIService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ResepController extends Controller
 {
@@ -23,8 +24,20 @@ class ResepController extends Controller
 
     public function store(StoreResepRequest $request)
     {
-        $resep = Resep::create($request->validated());
-        return response()->json($resep, 201);
+        try {
+            $resep = Resep::create($request->validated());
+            return response()->json([
+                'message' => 'Resep berhasil ditambahkan',
+                'data' => $resep
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal menambahkan resep: ' . $e->getMessage()], 500);
+        }
     }
 
     public function show(Resep $resep)
@@ -34,14 +47,32 @@ class ResepController extends Controller
 
     public function update(StoreResepRequest $request, Resep $resep)
     {
-        $resep->update($request->validated());
-        return response()->json($resep);
+        try {
+            $resep->update($request->validated());
+            return response()->json([
+                'message' => 'Resep berhasil diperbarui',
+                'data' => $resep
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal memperbarui resep: ' . $e->getMessage()], 500);
+        }
     }
 
     public function destroy(Resep $resep)
     {
-        $resep->delete();
-        return response()->json(null, 204);
+        try {
+            $resep->delete();
+            return response()->json([
+                'message' => 'Resep berhasil dihapus'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal menghapus resep: ' . $e->getMessage()], 500);
+        }
     }
 
     // Logic HPP: Calculate total price from JSON bahan_harga
@@ -85,15 +116,19 @@ class ResepController extends Controller
     // Bookmark Logic
     public function bookmark(Request $request, $id)
     {
-        $user = $request->user();
-        $user->reseps()->syncWithoutDetaching([$id]);
-        return response()->json(['message' => 'Resep bookmarked']);
+        try {
+            $user = $request->user();
+            $user->reseps()->syncWithoutDetaching([$id]);
+            return response()->json(['message' => 'Resep berhasil disimpan']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal menyimpan resep: ' . $e->getMessage()], 500);
+        }
     }
 
     public function unbookmark(Request $request, $id)
     {
         $user = $request->user();
         $user->reseps()->detach($id);
-        return response()->json(['message' => 'Resep unbookmarked']);
+        return response()->json(['message' => 'Resep batal disimpan']);
     }
 }
